@@ -290,8 +290,8 @@ export function FdCalculator() {
               <CardTitle>Calculation Results</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-6 sm:grid-cols-2">
-              <div className="space-y-4 text-lg">
-                <div className="flex items-center justify-between rounded-lg bg-secondary/50 p-4">
+              <div className="space-y-4 text-base">
+                <div className="flex items-center justify-between rounded-lg bg-secondary/50 p-3">
                   <div className="flex items-center gap-3">
                     <TrendingUp className="h-6 w-6 text-primary" />
                     <span className="font-medium">Maturity Amount</span>
@@ -310,7 +310,7 @@ export function FdCalculator() {
                     {formatCurrency(result.maturityAmount)}
                   </span>
                 </div>
-                <div className="flex items-center justify-between rounded-lg bg-secondary/50 p-4">
+                <div className="flex items-center justify-between rounded-lg bg-secondary/50 p-3">
                   <div className="flex items-center gap-3">
                     <PiggyBank className="h-6 w-6 text-accent" />
                     <span className="font-medium">Total Interest</span>
@@ -319,7 +319,7 @@ export function FdCalculator() {
                     {formatCurrency(result.totalInterest)}
                   </span>
                 </div>
-                 <div className="flex items-center justify-between rounded-lg bg-secondary/50 p-4">
+                 <div className="flex items-center justify-between rounded-lg bg-secondary/50 p-3">
                   <div className="flex items-center gap-3">
                     <PiggyBank className="h-6 w-6 text-muted-foreground" />
                     <span className="font-medium">Principal</span>
@@ -329,8 +329,8 @@ export function FdCalculator() {
                   </span>
                 </div>
               </div>
-              <div className="flex items-center justify-center">
-                <ResponsiveContainer width="100%" height={200}>
+              <div className="flex h-full min-h-[200px] items-center justify-center">
+                <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
                       data={chartData}
@@ -348,7 +348,12 @@ export function FdCalculator() {
                         />
                       ))}
                     </Pie>
-                    <Legend />
+                    <Legend
+                      wrapperStyle={{
+                        fontSize: "0.875rem",
+                        marginTop: "1rem",
+                      }}
+                    />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
