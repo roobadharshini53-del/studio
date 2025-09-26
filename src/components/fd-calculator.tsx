@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { Pie, PieChart, ResponsiveContainer, Cell, Legend } from "recharts";
 
 import { getFdTooltip } from "@/ai/flows/fd-calculator-tooltip";
 import { Button } from "@/components/ui/button";
@@ -40,7 +41,6 @@ import {
 import {
   CalendarDays,
   Info,
-  Landmark,
   Loader2,
   Percent,
   PiggyBank,
@@ -65,6 +65,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 interface CalculationResult {
+  principal: number;
   maturityAmount: number;
   totalInterest: number;
   tooltipMessage: string | null;
@@ -118,7 +119,7 @@ export function FdCalculator() {
       console.error("AI Tooltip Error:", error);
     }
 
-    setResult({ maturityAmount, totalInterest, tooltipMessage });
+    setResult({ principal, maturityAmount, totalInterest, tooltipMessage });
     setIsCalculating(false);
   }
 
@@ -134,6 +135,15 @@ export function FdCalculator() {
       maximumFractionDigits: 2,
     }).format(value);
   };
+  
+  const chartData = result
+    ? [
+        { name: "Principal", value: result.principal },
+        { name: "Interest", value: result.totalInterest },
+      ]
+    : [];
+  const COLORS = ["hsl(var(--muted))", "hsl(var(--primary))"];
+
 
   return (
     <TooltipProvider>
@@ -279,34 +289,68 @@ export function FdCalculator() {
             <CardHeader>
               <CardTitle>Calculation Results</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4 text-lg">
-              <div className="flex items-center justify-between rounded-lg bg-secondary/50 p-4">
-                <div className="flex items-center gap-3">
-                  <TrendingUp className="h-6 w-6 text-primary" />
-                  <span className="font-medium">Maturity Amount</span>
-                  {result.tooltipMessage && (
-                    <Tooltip>
-                      <TooltipTrigger>
-                        <Info className="h-5 w-5 cursor-help text-muted-foreground" />
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p className="max-w-xs">{result.tooltipMessage}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  )}
+            <CardContent className="grid gap-6 sm:grid-cols-2">
+              <div className="space-y-4 text-lg">
+                <div className="flex items-center justify-between rounded-lg bg-secondary/50 p-4">
+                  <div className="flex items-center gap-3">
+                    <TrendingUp className="h-6 w-6 text-primary" />
+                    <span className="font-medium">Maturity Amount</span>
+                    {result.tooltipMessage && (
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Info className="h-5 w-5 cursor-help text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="max-w-xs">{result.tooltipMessage}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
+                  </div>
+                  <span className="font-bold tracking-tight text-primary">
+                    {formatCurrency(result.maturityAmount)}
+                  </span>
                 </div>
-                <span className="font-bold tracking-tight text-primary">
-                  {formatCurrency(result.maturityAmount)}
-                </span>
+                <div className="flex items-center justify-between rounded-lg bg-secondary/50 p-4">
+                  <div className="flex items-center gap-3">
+                    <PiggyBank className="h-6 w-6 text-accent" />
+                    <span className="font-medium">Total Interest</span>
+                  </div>
+                  <span className="font-bold tracking-tight text-accent">
+                    {formatCurrency(result.totalInterest)}
+                  </span>
+                </div>
+                 <div className="flex items-center justify-between rounded-lg bg-secondary/50 p-4">
+                  <div className="flex items-center gap-3">
+                    <PiggyBank className="h-6 w-6 text-muted-foreground" />
+                    <span className="font-medium">Principal</span>
+                  </div>
+                  <span className="font-bold tracking-tight text-muted-foreground">
+                    {formatCurrency(result.principal)}
+                  </span>
+                </div>
               </div>
-              <div className="flex items-center justify-between rounded-lg bg-secondary/50 p-4">
-                <div className="flex items-center gap-3">
-                  <PiggyBank className="h-6 w-6 text-accent" />
-                  <span className="font-medium">Total Interest</span>
-                </div>
-                <span className="font-bold tracking-tight text-accent">
-                  {formatCurrency(result.totalInterest)}
-                </span>
+              <div className="flex items-center justify-center">
+                <ResponsiveContainer width="100%" height={200}>
+                  <PieChart>
+                    <Pie
+                      data={chartData}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      fill="#8884d8"
+                    >
+                      {chartData.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={COLORS[index % COLORS.length]}
+                        />
+                      ))}
+                    </Pie>
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
             </CardContent>
           </Card>
