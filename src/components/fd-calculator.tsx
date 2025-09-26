@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -74,6 +74,11 @@ interface CalculationResult {
 export function FdCalculator() {
   const [result, setResult] = useState<CalculationResult | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -330,7 +335,7 @@ export function FdCalculator() {
                 </div>
               </div>
               <div className="flex h-full min-h-[200px] items-center justify-center">
-                <ResponsiveContainer width="100%" height="100%">
+                {isClient && <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
                       data={chartData}
@@ -355,7 +360,7 @@ export function FdCalculator() {
                       }}
                     />
                   </PieChart>
-                </ResponsiveContainer>
+                </ResponsiveContainer>}
               </div>
             </CardContent>
           </Card>
