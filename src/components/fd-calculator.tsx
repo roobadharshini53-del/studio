@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Pie, PieChart, ResponsiveContainer, Cell, Legend, Tooltip as RechartsTooltip, Sector } from "recharts";
+import { Pie, PieChart, ResponsiveContainer, Cell, Sector } from "recharts";
 
 
 import { getFdTooltip } from "@/ai/flows/fd-calculator-tooltip";
@@ -45,9 +45,7 @@ import {
   Info,
   Loader2,
   Percent,
-  PiggyBank,
   RotateCcw,
-  TrendingUp,
 } from "lucide-react";
 
 const formSchema = z.object({
@@ -74,23 +72,10 @@ interface CalculationResult {
 }
 
 const renderActiveShape = (props: any) => {
-  const RADIAN = Math.PI / 180;
-  const { cx, cy, midAngle, innerRadius, outerRadius, startAngle, endAngle, fill, payload, percent, value } = props;
-  const sin = Math.sin(-RADIAN * midAngle);
-  const cos = Math.cos(-RADIAN * midAngle);
-  const sx = cx + (outerRadius + 10) * cos;
-  const sy = cy + (outerRadius + 10) * sin;
-  const mx = cx + (outerRadius + 30) * cos;
-  const my = cy + (outerRadius + 30) * sin;
-  const ex = mx + (cos >= 0 ? 1 : -1) * 22;
-  const ey = my;
-  const textAnchor = cos >= 0 ? 'start' : 'end';
+  const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
 
   return (
     <g>
-      <text x={cx} y={cy} dy={8} textAnchor="middle" fill={fill} className="font-bold text-lg">
-        {payload.name}
-      </text>
       <Sector
         cx={cx}
         cy={cy}
@@ -100,21 +85,6 @@ const renderActiveShape = (props: any) => {
         endAngle={endAngle}
         fill={fill}
       />
-      <Sector
-        cx={cx}
-        cy={cy}
-        startAngle={startAngle}
-        endAngle={endAngle}
-        innerRadius={outerRadius + 6}
-        outerRadius={outerRadius + 10}
-        fill={fill}
-      />
-      <path d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`} stroke={fill} fill="none" />
-      <circle cx={ex} cy={ey} r={2} fill={fill} stroke="none" />
-      <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} textAnchor={textAnchor} fill="hsl(var(--foreground))" className="text-sm">{`₹${value.toLocaleString()}`}</text>
-      <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} dy={18} textAnchor={textAnchor} fill="hsl(var(--muted-foreground))" className="text-xs">
-        {`(${(percent * 100).toFixed(2)}%)`}
-      </text>
     </g>
   );
 };
@@ -188,6 +158,7 @@ export function FdCalculator() {
     return new Intl.NumberFormat("en-IN", {
       style: "currency",
       currency: "INR",
+      minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(value);
   };
@@ -202,7 +173,7 @@ export function FdCalculator() {
         { name: "Interest", value: result.totalInterest },
       ]
     : [];
-  const COLORS = ["hsl(var(--muted))", "hsl(var(--primary))"];
+  const COLORS = ["hsl(var(--primary))", "hsl(var(--secondary))"];
 
 
   return (
@@ -346,52 +317,44 @@ export function FdCalculator() {
 
         {result && (
           <Card className="w-full animate-in fade-in-50">
-            <CardHeader>
-              <CardTitle>Calculation Results</CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-6 sm:grid-cols-2">
-              <div className="space-y-4 text-base">
-                <div className="flex items-center justify-between rounded-lg bg-secondary/50 p-3">
-                  <div className="flex items-center gap-3">
-                    <TrendingUp className="h-6 w-6 text-primary" />
-                    <span className="font-medium">Maturity Amount</span>
+            <CardContent className="grid gap-6 pt-6 sm:grid-cols-2">
+              <div className="space-y-4">
+                <div className="space-y-1">
+                   <div className="flex items-center gap-2">
+                    <p className="text-sm text-muted-foreground">Maturity Amount</p>
                     {result.tooltipMessage && (
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <Info className="h-5 w-5 cursor-help text-muted-foreground" />
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p className="max-w-xs">{result.tooltipMessage}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    )}
-                  </div>
-                  <span className="font-bold tracking-tight text-primary">
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <Info className="h-4 w-4 cursor-help text-muted-foreground" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="max-w-xs">{result.tooltipMessage}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
+                   </div>
+                  <p className="text-3xl font-bold tracking-tight">
                     {formatCurrency(result.maturityAmount)}
-                  </span>
+                  </p>
                 </div>
-                <div className="flex items-center justify-between rounded-lg bg-secondary/50 p-3">
-                  <div className="flex items-center gap-3">
-                    <PiggyBank className="h-6 w-6 text-accent" />
-                    <span className="font-medium">Total Interest</span>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Principal Amount:</span>
+                    <span className="font-medium">
+                      {formatCurrency(result.principal)}
+                    </span>
                   </div>
-                  <span className="font-bold tracking-tight text-accent">
-                    {formatCurrency(result.totalInterest)}
-                  </span>
-                </div>
-                 <div className="flex items-center justify-between rounded-lg bg-secondary/50 p-3">
-                  <div className="flex items-center gap-3">
-                    <PiggyBank className="h-6 w-6 text-muted-foreground" />
-                    <span className="font-medium">Principal</span>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Interest Earned:</span>
+                    <span className="font-medium">
+                      {formatCurrency(result.totalInterest)}
+                    </span>
                   </div>
-                  <span className="font-bold tracking-tight text-muted-foreground">
-                    {formatCurrency(result.principal)}
-                  </span>
                 </div>
               </div>
-              <div className="flex h-full min-h-[200px] items-center justify-center">
+              <div className="flex h-full min-h-[150px] items-center justify-center">
                 {isClient && (
-                  <ResponsiveContainer width="100%" height={250}>
+                  <ResponsiveContainer width="100%" height={150}>
                   <PieChart>
                     <Pie
                       activeIndex={activeIndex}
@@ -400,15 +363,15 @@ export function FdCalculator() {
                       cx="50%"
                       cy="50%"
                       innerRadius={60}
-                      outerRadius={80}
+                      outerRadius={70}
                       dataKey="value"
                       onMouseEnter={onPieEnter}
+                      stroke="none"
                     >
                       {chartData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} className="focus:outline-none" />
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Legend iconType="circle" wrapperStyle={{ fontSize: "0.875rem" }}/>
                   </PieChart>
                 </ResponsiveContainer>
                 )}
@@ -420,5 +383,3 @@ export function FdCalculator() {
     </TooltipProvider>
   );
 }
-
-    
